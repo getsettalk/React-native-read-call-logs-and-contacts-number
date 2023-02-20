@@ -1,0 +1,40 @@
+  async function getc() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_CALL_LOG,
+        {
+          title: 'Call Log Example',
+          message:
+            'Access your call logs',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        }
+      )
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log(CallLogs);
+        CallLogs.load(5).then((cn) => console.log(cn));
+      } else {
+        console.log('Call Log permission denied');
+      }
+    }
+    catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function getCont() {
+    try {
+      const ispermission = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS, { title: 'Allow Access to Contacts', message: 'Access Your Contect Number', 'buttonPositive': 'Please accept' });
+      console.log(ispermission)
+      if (ispermission === PermissionsAndroid.RESULTS.GRANTED) {
+        var cou= await Contacts.getAll()
+        console.log(`Cou`,cou[11])
+      }else {
+        console.log('xxxx')
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  getCont()
