@@ -1,5 +1,5 @@
 import { View, Text, PermissionsAndroid, StyleSheet, TouchableOpacity, FlatList, Modal, Pressable } from 'react-native'
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, memo } from 'react'
 import TopHeader from '../Component/TopHeader'
 import CallLogs from 'react-native-call-log'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
@@ -26,7 +26,7 @@ const Calllogs = () => {
             )
             if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                 setPermission(true)
-                CallLogs.load(100).then(logs => {
+                CallLogs.load(400).then(logs => {
                     // console.log('Calll', logs);
                     setoldDataLogs(logs)
                     setcallLogsData(logs)
@@ -184,4 +184,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default Calllogs
+export default memo(Calllogs)

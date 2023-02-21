@@ -1,0 +1,8 @@
+ const contactsWithNamesAndPhones = contacts.map((contact) => ({
+   name: contact.displayName,
+   phoneNumber: contact.phoneNumbers[0]?.number, // Method chaining
+ }));
+ const phoneNumbers = contactsWithNamesAndPhones.map((contact) => contact.phoneNumber);
+ const uniquePhoneNumbers = [...new Set(phoneNumbers)];
+ console.log("contactsWithNamesAndPhones ",contactsWithNamesAndPhones )
+ //^^^^ Above All code will generate formated with unique phone number for phonebook android with name no more data

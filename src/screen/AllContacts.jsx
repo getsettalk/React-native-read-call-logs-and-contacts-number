@@ -1,5 +1,5 @@
 import { View, Text, PermissionsAndroid, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback , memo} from 'react'
 import Contacts from 'react-native-contacts';
 import TopHeader from '../Component/TopHeader';
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
@@ -20,10 +20,38 @@ const AllContacts = () => {
         buttonPositive: 'Ok',
       })
       if (grant === PermissionsAndroid.RESULTS.GRANTED) {
-        Contacts.getAll().then(contacts=>{
-                  // console.log('contacts', contacts)
-        setContactsData(contacts)
-        setoldContactsData(contacts)
+        Contacts.getAll().then(contacts => {
+
+          const contactsWithNamesAndPhones = contacts.reduce((acc, contact) => {
+            const uniquePhoneNumbers = new Set(
+              contact.phoneNumbers.map((phoneNumber) =>
+                phoneNumber.number.replace(/\D/g, '') // for remove symbole and space
+              )
+            );
+            const contactsWithPhoneNumbers = Array.from(uniquePhoneNumbers).map(
+              (phoneNumber) => ({ name: contact.displayName, phoneNumber })
+            );
+            const existingContactIndex = acc.findIndex(
+              (c) => c.name === contact.displayName 
+            );
+            if (existingContactIndex !== -1) {
+              acc[existingContactIndex].phoneNumbers.push(...contactsWithPhoneNumbers); // if same name find multipal time than that will merge his phone number in array
+            } else {
+              acc.push({ name: contact.displayName, phoneNumbers: contactsWithPhoneNumbers });
+            }
+            return acc;
+          }, []);
+
+          // const phoneNumbers = contactsWithNamesAndPhones.map((contact) => contact.phoneNumber);
+          // const uniquePhoneNumbers = [...new Set(phoneNumbers)];
+
+          // console.table(contactsWithNamesAndPhones)
+
+          // setContactsData(contacts)
+          // setoldContactsData(contacts)
+
+          setContactsData(contactsWithNamesAndPhones)
+          setoldContactsData(contactsWithNamesAndPhones)
         })
 
 
@@ -42,39 +70,51 @@ const AllContacts = () => {
       setContactsData(oldcontactsData)
     } else {
       var tempLogs = contactsData.filter((item) => {
-        return item.displayName.toLowerCase().indexOf(text.toLowerCase()) > -1
+        return item.name.toLowerCase().indexOf(text.toLowerCase()) > -1
       })
       setContactsData(tempLogs)
     }
   }
 
+  const ITEM_HEIGHT = 40; // optimize view at a time only 20 data
+    const getItemLayout = useCallback((data, index) => ({
+        length: ITEM_HEIGHT,
+        offset: ITEM_HEIGHT * index,
+        index
+    }), [])
+  
+
 
   useEffect(() => {
     getAllContactsData()
   }, [])
+  
   return (
     <View>
       <TopHeader searchFun={onSearchText} tabname='Contacts' />
       <FlatList
         data={contactsData}
         style={{ marginBottom: responsiveHeight(8.4) }}
-        keyExtractor={(item, index) => item.recordID + Math.floor(Math.random() *100)}
+        keyExtractor={(item, index) => {
+          return index.toString()
+        }}
+        getItemLayout={getItemLayout}
+        initialNumToRender={20}
         renderItem={({ item }) => {
-          // console.log(item.phoneNumbers)
           return (
             <View style={styles.Viewlist} >
               <View style={styles.icon} >
                 <FontAwesome5 name={'user-circle'} size={responsiveWidth(8)} />
               </View>
               <View style={{ width: responsiveWidth(70), marginLeft: responsiveWidth(5) }}>
-                <Text style={styles.viewListName}>{item.displayName}</Text>
+                <Text style={styles.viewListName}>{item.name}</Text>
                 {item.phoneNumbers && item.phoneNumbers.length > 0 && item.phoneNumbers.map((numberData, numberIndex) => {
                   // console.log('numData', numberData)
                   return (
-                    <TouchableOpacity >
-                      <Text>{numberData.number}</Text>
+                    <TouchableOpacity key={numberIndex}>
+                      <Text>{numberData.phoneNumber}</Text>
                     </TouchableOpacity>
-                  ) 
+                  )
                 })}
 
               </View>
@@ -124,4 +164,4 @@ const styles = StyleSheet.create({
     textAlign: 'left'
   },
 });
-export default AllContacts
+export default memo(AllContacts)
