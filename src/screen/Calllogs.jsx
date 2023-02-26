@@ -8,6 +8,7 @@ import { appName, blackClr, dimGreenClr, mutedClr, pinkClr, PoppinsMedium, Poppi
 
 
 
+
 const Calllogs = () => {
     const [callLogsData, setcallLogsData] = useState([]);
     const [oldDataLogs, setoldDataLogs] = useState([]);
@@ -27,6 +28,7 @@ const Calllogs = () => {
             if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                 setPermission(true)
                 CallLogs.load(400).then(logs => {
+                 
                     // console.log('Calll', logs);
                     setoldDataLogs(logs)
                     setcallLogsData(logs)
@@ -53,6 +55,8 @@ const Calllogs = () => {
         }
     }
 
+   
+
     useEffect(() => {
         getCallData()
     }, [])
@@ -64,6 +68,7 @@ const Calllogs = () => {
     }
 
 
+ 
     // ***** this may produce error because of long data set in flatlist 
     const ITEM_HEIGHT = 40; // optimize view at a time only 20 data
     const getItemLayout = useCallback((data, index) => ({
@@ -76,16 +81,16 @@ const Calllogs = () => {
 
     return (
         <View>
-            <TopHeader searchFun={onSearchText}  tabname='CallLogs' />
+            <TopHeader searchFun={onSearchText} tabname='CallLogs' />
             {/* show call logs data  */}
-
+          
             <FlatList
                 data={callLogsData}
                 style={{ marginBottom: responsiveHeight(8.4) }}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => {
                     return (
-                        <TouchableOpacity style={styles.Viewlist} >
+                        <TouchableOpacity style={styles.Viewlist}  >
                             <View style={styles.icon} >
                                 {(item.type == "OUTGOING" ? ICONType('call-made', item.type) : item.type == 'MISSED' ? ICONType('call-missed', item.type) : item.type == 'UNKNOWN' ? ICONType('block', item.type) : item.type == 'INCOMING' ? ICONType('call-received', item.type) : '')}
                             </View>
@@ -101,7 +106,7 @@ const Calllogs = () => {
                 }}
                 getItemLayout={getItemLayout}
             />
-
+            
         </View>
     )
 }
@@ -163,24 +168,24 @@ const styles = StyleSheet.create({
         display: 'flex',
         justifyContent: 'space-between'
     },
-    appname:{
+    appname: {
         fontFamily: RobotoBold,
         fontSize: responsiveFontSize(3.4),
         color: dimGreenClr
     },
-    databox:{
+    databox: {
         // backgroundColor:dimGreenClr,
         width: responsiveWidth(90),
         height: responsiveHeight(30),
         padding: 3
     },
-    dataText :{
+    dataText: {
         fontSize: responsiveFontSize(2.2),
         fontFamily: PoppinsMedium,
-        borderBottomWidth : 1,
-        borderStyle:'dashed',
+        borderBottomWidth: 1,
+        borderStyle: 'dashed',
         borderBottomColor: dimGreenClr,
-        color : blackClr,
+        color: blackClr,
     }
 })
 

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "958882997776",
+    "project_id": "true-connect-93874",
+    "storage_bucket": "true-connect-93874.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958882997776:android:ac4b7c21e4b8103b3d8c95",
+        "android_client_info": {
+          "package_name": "com.trueconnect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "958882997776-jqj0k1v3v5hcpgc37rrdso67nao0b0dm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.trueconnect",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "958882997776-agbod7kkrlhmfhjobabp39rtlrpgqlv9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6jBa5n4-QaP-zV55JDlI12KnePpcqFpU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "958882997776-agbod7kkrlhmfhjobabp39rtlrpgqlv9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

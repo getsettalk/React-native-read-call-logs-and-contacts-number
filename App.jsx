@@ -1,5 +1,5 @@
 import { SafeAreaView, View, Text } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import SplashScreen from 'react-native-splash-screen'
 import FirstView from './src/screen/FirstView'
 import { NavigationContainer } from '@react-navigation/native'
@@ -11,12 +11,24 @@ import Calllogs from './src/screen/Calllogs'
 import AllContacts from './src/screen/AllContacts'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const App = () => {
+  const [show1st, setShow1st] = useState(true)
   useEffect(() => {
+    try {
+      AsyncStorage.getItem('FirstLogin').then((res) => {
+        if (res == 'done') {
+          // alert("Click hai");
+          setShow1st(false)
+        }
+      })
+    } catch (error) {
+      console.log(error)
+    }
     SplashScreen.hide();
   }, [])
+
   const Stack = createNativeStackNavigator();
   const Tab = createBottomTabNavigator();
 
@@ -41,13 +53,15 @@ const App = () => {
     </Tab.Navigator>)
   }
 
+
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <NavigationContainer >
         <Stack.Navigator screenOptions={{
           headerShown: false
         }}>
-          <Stack.Screen name='First' component={FirstView} />
+          {show1st ? <Stack.Screen name='First' component={FirstView} /> : null}
           <Stack.Screen name='Second' component={SecondScreen} />
           <Stack.Screen name='Final' component={Final} />
         </Stack.Navigator>

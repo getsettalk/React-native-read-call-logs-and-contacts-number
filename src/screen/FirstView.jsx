@@ -2,13 +2,19 @@ import { ScrollView, View, Text, StyleSheet, TouchableOpacity, StatusBar } from 
 import React from 'react'
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
 import { dimGreenClr, pinkClr, dangerClr, whiteClr, blackClr, RobotoBold, RobotoMedium, RobotoRegular, primaryClr } from '../Common'
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import IntroIcon from '../../assets/myimg/intro1.svg';
 // import FontAws from 'react-native-vector-icons/FontAwesome5'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
 const FirstView = ({ navigation }) => {
-
+  async function setInitialLoginStatus() {
+    var res = await AsyncStorage.setItem('FirstLogin', 'done').then((res) => {
+      // if user done initial login mean app is opened and gone to Second Screen 
+      //than not visual this (First Screen)
+      navigation.navigate('Second')
+    }).catch((error) => console.log(error))
+  }
   return (
     <ScrollView style={{ flex: 1, backgroundColor: whiteClr, paddingHorizontal: responsiveWidth(5) }} showsVerticalScrollIndicator={false}>
       <StatusBar translucent={false} backgroundColor={whiteClr} barStyle={'dark-content'} />
@@ -21,7 +27,7 @@ const FirstView = ({ navigation }) => {
 
       <View style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', height: responsiveHeight(37) }}>
         {/* navigate to second screen  */}
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Final')}>
+        <TouchableOpacity style={styles.button} onPress={setInitialLoginStatus}>
           <Text style={styles.buttonText}>Get Start </Text>
           <AntDesign name='rightcircleo' style={styles.buttonIcon} />
         </TouchableOpacity>

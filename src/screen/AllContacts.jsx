@@ -1,16 +1,17 @@
 import { View, Text, PermissionsAndroid, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState, useCallback , memo} from 'react'
+import React, { useEffect, useState, useCallback, memo } from 'react'
 import Contacts from 'react-native-contacts';
 import TopHeader from '../Component/TopHeader';
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
-import { appName, blackClr, dimGreenClr, mutedClr, pinkClr, PoppinsMedium, PoppinsRegular, primaryClr, RobotoBold, whiteClr } from '../Common'
+import { appName, blackClr, dimGreenClr, mutedClr, pinkClr, PoppinsMedium, PoppinsRegular, primaryClr, RobotoBold, token, whiteClr } from '../Common'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AllContacts = () => {
   const [contactsData, setContactsData] = useState([]);
   const [oldcontactsData, setoldContactsData] = useState([]);
-  const [databaseContacts, setdatabaseContacts] = useState([]);
+  // const [databaseContacts, setdatabaseContacts] = useState([]);
+
 
   async function getAllContactsData() {
     try {
@@ -32,7 +33,7 @@ const AllContacts = () => {
               (phoneNumber) => ({ name: contact.displayName, phoneNumber })
             );
             const existingContactIndex = acc.findIndex(
-              (c) => c.name === contact.displayName 
+              (c) => c.name === contact.displayName
             );
             if (existingContactIndex !== -1) {
               acc[existingContactIndex].phoneNumbers.push(...contactsWithPhoneNumbers); // if same name find multipal time than that will merge his phone number in array
@@ -49,6 +50,31 @@ const AllContacts = () => {
 
           // setContactsData(contacts)
           // setoldContactsData(contacts)
+          // console.log(JSON.stringify(contactsWithNamesAndPhones))
+
+          AsyncStorage.getItem('userInfo').then((res) => {
+            if (res !== null) {
+              const jsondata = JSON.parse(res)
+              const bodydata = {
+                "Auth": token,
+                "userID": jsondata.uid,
+                "userPhone": jsondata.phone,
+                "contactsData": contactsWithNamesAndPhones
+              }
+              const options = {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bodydata)
+              };
+
+              fetch('http://192.168.43.39/True%20connect%20API/Contacts/insert.php', options)
+                .then(response => response.json())
+                .then(response => console.log(response))
+                .catch(err => console.error(err));
+            }
+          })
 
           setContactsData(contactsWithNamesAndPhones)
           setoldContactsData(contactsWithNamesAndPhones)
@@ -64,6 +90,7 @@ const AllContacts = () => {
     }
   }
 
+  console.log("Remount")
   const onSearchText = (text) => {
     // filter number
     if (text == '') {
@@ -77,18 +104,18 @@ const AllContacts = () => {
   }
 
   const ITEM_HEIGHT = 40; // optimize view at a time only 20 data
-    const getItemLayout = useCallback((data, index) => ({
-        length: ITEM_HEIGHT,
-        offset: ITEM_HEIGHT * index,
-        index
-    }), [])
-  
+  const getItemLayout = useCallback((data, index) => ({
+    length: ITEM_HEIGHT,
+    offset: ITEM_HEIGHT * index,
+    index
+  }), [])
+
 
 
   useEffect(() => {
     getAllContactsData()
   }, [])
-  
+
   return (
     <View>
       <TopHeader searchFun={onSearchText} tabname='Contacts' />
