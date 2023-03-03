@@ -1,19 +1,19 @@
-import { View, Text, PermissionsAndroid, StyleSheet, TouchableOpacity, FlatList, Modal, Pressable } from 'react-native'
+import { View, Text, PermissionsAndroid, StyleSheet, TouchableOpacity, FlatList, Modal, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect, useCallback, memo } from 'react'
 import TopHeader from '../Component/TopHeader'
 import CallLogs from 'react-native-call-log'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
 import { appName, blackClr, dimGreenClr, mutedClr, pinkClr, PoppinsMedium, PoppinsRegular, primaryClr, RobotoBold, whiteClr } from '../Common'
+import firebase from "@react-native-firebase/app";
 
 
 
-
-const Calllogs = () => {
+const Calllogs = ({ navigation }) => {
+    const [alreadyLogin, setalreadyLogin] = useState(firebase.auth().currentUser)
     const [callLogsData, setcallLogsData] = useState([]);
     const [oldDataLogs, setoldDataLogs] = useState([]);
     const [isPermission, setPermission] = useState(false)
-
 
     async function getCallData() {
         try {
@@ -28,7 +28,7 @@ const Calllogs = () => {
             if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                 setPermission(true)
                 CallLogs.load(400).then(logs => {
-                 
+
                     // console.log('Calll', logs);
                     setoldDataLogs(logs)
                     setcallLogsData(logs)
@@ -55,7 +55,7 @@ const Calllogs = () => {
         }
     }
 
-   
+
 
     useEffect(() => {
         getCallData()
@@ -68,7 +68,7 @@ const Calllogs = () => {
     }
 
 
- 
+
     // ***** this may produce error because of long data set in flatlist 
     const ITEM_HEIGHT = 40; // optimize view at a time only 20 data
     const getItemLayout = useCallback((data, index) => ({
@@ -77,14 +77,15 @@ const Calllogs = () => {
         index
     }), [])
 
-
+function getDetailsOfNumber(number){
+    
+}
 
     return (
         <View>
             <TopHeader searchFun={onSearchText} tabname='CallLogs' />
             {/* show call logs data  */}
-          
-            <FlatList
+            {callLogsData !==[] ? (<FlatList
                 data={callLogsData}
                 style={{ marginBottom: responsiveHeight(8.4) }}
                 keyExtractor={(item, index) => index.toString()}
@@ -105,8 +106,9 @@ const Calllogs = () => {
                     )
                 }}
                 getItemLayout={getItemLayout}
-            />
-            
+            />) :
+                <ActivityIndicator size={responsiveFontSize(5)} color={dimGreenClr} />
+            }
         </View>
     )
 }

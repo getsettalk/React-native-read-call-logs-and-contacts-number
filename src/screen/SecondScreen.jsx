@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Platform, TextInput, KeyboardAvoidingView, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native'
+import { View, Text, StyleSheet, Platform, TextInput, KeyboardAvoidingView, TouchableOpacity, ActivityIndicator, Keyboard, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { blackClr, brand, dimGreenClr, Logo, MACaddress, model, pinkClr, PoppinsBold, primaryClr, RobotoMedium, serialNum, token, whiteClr } from '../Common'
 import {
@@ -8,22 +8,35 @@ import Girl from "../../assets/myimg/girl.svg";
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import firebase from '@react-native-firebase/app';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+
 
 
 const SecondScreen = ({ navigation }) => {
   // console.log(responsiveWidth(16.7))
   const [userphone, setUserPhone] = useState('');
   const [enterOTP, setenterOTP] = useState('');
- 
+
   const [isRequested, setisRequested] = useState(false)
   const [verifyReq, setVerifyReq] = useState(false)
   const [showNextForm, setshowNextForm] = useState(false)
   const [confirm, setConfirm] = useState(null);
   const [user, setUser] = useState();
   const [initializing, setInitializing] = useState(true);
+  const [alreadyLogin, setalreadyLogin] = useState(firebase.auth().currentUser)
 
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 100 // keyboard
+
+
+
+  useEffect(() => {
+    // if user already logged in then redirect to Final Screen
+    if (alreadyLogin) {
+      navigation.replace('Final')
+    }
+  }, [])
 
   useEffect(() => {
     try {
@@ -45,144 +58,83 @@ const SecondScreen = ({ navigation }) => {
       text1: msg
     })
   }
-  const storeData = async (key, value) => {
-    try {
-      await AsyncStorage.setItem(key, value)
-      navigation.navigate('Final')
-    } catch (e) {
-      console.log("Storing Localdata Error", e)
-    }
-  }
 
-  // function submitPhoneNumberBTN() {
-  //   if (userphone.length !== 10) {
-  //     showToast('error', 'Please Enter 10 Digit Mobile Number');
-  //   } else {
-
-
-  //     const collectData = {
-  //       "Auth": token,
-  //       "userPhone": userphone,
-  //       "deviceName": brand,
-  //       "DeviceMAC": MACaddress,
-  //       "DeviceType": model,
-  //       "DUID": serialNum // serial number of device
-  //     }
-  //     const options = {
-  //       method: 'POST',
-  //       body: JSON.stringify(collectData)
-  //     };
-  //     setisRequested(!isRequested)
-  //     fetch('http://192.168.43.39/True%20connect%20API/AuthUser.php', options)
-  //       .then(response => response.json())
-  //       .then(response => {
-  //         showToast('success', response.msg)
-  //         console.log(response);
-  //         Keyboard.dismiss();
-  //         if (response.code == 222) {
-  //           setOTP(response.otp)
-  //           setisRequested(false)
-  //           setshowNextForm(true)
-  //         } else {
-  //           setisRequested(false)
-  //           alert(response.msg)
-  //           showToast('error', `${response.msg} ${response.code}`)
-  //         }
-
-  //       })
-  //       .catch(err => console.error(err));
-  //   }
-  // }
-
-
-
-  // Handle the button press
 
   async function signInWithPhoneNumber() {
-    if (userphone.length !== 10) {
-      showToast('error', 'Please Enter 10 Digit Mobile Number');
+    const hasSpacesOrSymbols = /\s|[,.\-]/.test(userphone); // check if the string contains spaces or symbols
+    if (hasSpacesOrSymbols) {
+      showToast('error', 'Invalid Phone Number given ?');
     } else {
-      setisRequested(!isRequested)
-      const confirmation = await auth().signInWithPhoneNumber(`+91${userphone}`);
-      setConfirm(confirmation);
-      if (confirmation) {
-        setisRequested(false)
-        setshowNextForm(true)
+      if (userphone.length !== 10) {
+        showToast('error', 'Please Enter 10 Digit Mobile Number');
+      } else {
+        try {
+          setisRequested(!isRequested)
+          const confirmation = await auth().signInWithPhoneNumber(`+91${userphone}`);
+          if (confirmation) {
+            setConfirm(confirmation);
+            setisRequested(false)
+            setshowNextForm(true)
+          }
+        } catch (error) {
+          console.log('signInWithPhoneNumber Second Screen', error)
+          Alert(error)
+        }
       }
     }
 
   }
 
-  // function VerifyOTPandNext() {
-  //   const collectData = {
-  //     "Auth": token,
-  //     "userPhone": userphone,
-  //     "deviceName": brand,
-  //     "DeviceMAC": MACaddress,
-  //     "DeviceType": model,
-  //     "DUID": serialNum // serial number of device
-  //   }
-  //   const options = {
-  //     method: 'POST',
-  //     body: JSON.stringify(collectData)
-  //   };
-
-  //   if (enterOTP.length < 4) {
-  //     showToast('error', 'Please Enter OTP ?');
-  //   } else {
-  //     if (enterOTP == OTP) {
-  //       setVerifyReq(true)
-  //       Keyboard.dismiss();
-  //       fetch('http://192.168.43.39/True%20connect%20API/verifyUser.php', options)
-  //         .then(response => response.json())
-  //         .then(response => {
-  //           console.log(response)
-  //           if (response.code == 222) {
-  //             storeData('isLogin','Yes')
-  //             storeData('userInfo',JSON.stringify(response.userData))
-  //             setVerifyReq(false)
-  //           } else {
-  //             alert(response.msg)
-  //           }
-  //         })
-  //         .catch(err => console.error(err));
-  //     } else {
-  //       showToast('error', 'Entered OTP Not Match, Enter Valid OTP');
-  //     }
-  //   }
-
-  // }
-
+  // Handle user state changes
+  function onAuthStateChanged(user) {
+    // console.log('state', user)
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
+  
   async function confirmCode() {
     try {
       if (enterOTP.length < 4) {
         showToast('error', 'Please Enter OTP ?');
       } else {
-        await confirm.confirm(enterOTP);
+        var resp = await confirm.confirm(enterOTP);
+        console.log(resp)
+        if (resp) {
+          showToast('success', 'OTP successfully Verify done.');
+          firestore()
+            .collection('Users').doc('userslistid')
+            .set({allusers:{
+              phone: user.phoneNumber,
+              brand,
+              MACaddress,
+              serialNum,
+              model,
+              uid: user.uid}
+            })
+            .then(() => {
+              console.log('User added!');
+            });
+          navigation.navigate('Final') // navigate to final
+        }
+
       }
     } catch (error) {
+      showToast('error', `Invalid Code ? OTP has sent on ${userphone}`);
       console.log('Invalid code.', error);
     }
   }
 
 
 
-  // Handle user state changes
-  function onAuthStateChanged(user) {
-    console.log('state', user)
-    setUser(user);
-    if (initializing) setInitializing(false);
-  }
 
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    console.log("subscriber",subscriber)
+    // console.log("subscriber", subscriber)
     return subscriber; // unsubscribe on unmount
 
   })
 
-  console.log('confirm', confirm)
-  console.log('users', user)
+  console.log("user at Second Screen", user) // this may show undefine because of by default not setting user details in state
 
   return (
     <KeyboardAvoidingView behavior='padding' enabled keyboardVerticalOffset={keyboardVerticalOffset} style={{ flex: 1, backgroundColor: whiteClr, justifyContent: 'space-between' }} showsVerticalScrollIndicator={false}>
@@ -199,7 +151,7 @@ const SecondScreen = ({ navigation }) => {
 
       <View style={styles.bottomContainer}>
         <View style={{ display: showNextForm ? 'none' : 'flex', justifyContent: 'center', alignItems: 'center', }}>
-          <TextInput placeholder='Enter Mobile No.' style={styles.inputPhone} keyboardType='numeric' maxLength={10} onChangeText={(text) => setUserPhone(text)} />
+          <TextInput placeholder='Enter Mobile No.' style={styles.inputPhone} keyboardType='phone-pad' maxLength={10} onChangeText={(text) => setUserPhone(text)} />
 
           <TouchableOpacity style={styles.button} onPress={signInWithPhoneNumber} disabled={isRequested}>
             <Text style={styles.buttonText}> Get OTP {isRequested ? <ActivityIndicator color={whiteClr} /> : <AntDesign name='unlock' style={styles.buttonIcon} />}</Text>
@@ -208,7 +160,7 @@ const SecondScreen = ({ navigation }) => {
 
         {/* ****** dispaly after successfully sent otp  ::: default none after set 'flex' */}
         <View style={{ display: showNextForm ? 'flex' : 'none', justifyContent: 'center', alignItems: 'center' }}>
-          <TextInput placeholder='Enter OTP ' style={[styles.inputPhone, { textAlign: 'center', fontWeight: '800' }]} onChangeText={(text) => setenterOTP(text)} />
+          <TextInput placeholder='Enter OTP ' keyboardType='phone-pad' style={[styles.inputPhone, { textAlign: 'center', fontWeight: '800' }]} onChangeText={(text) => setenterOTP(text)} />
           <TouchableOpacity style={[styles.button, { backgroundColor: dimGreenClr }]} onPress={confirmCode}>
             <Text style={styles.buttonText}> Verify OTP {verifyReq ? <ActivityIndicator color={whiteClr} /> : <AntDesign name='unlock' style={[styles.buttonIcon, { color: primaryClr }]} />}</Text>
           </TouchableOpacity >

@@ -12,9 +12,12 @@ import AllContacts from './src/screen/AllContacts'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import firebase from "@react-native-firebase/app";
 
 const App = () => {
   const [show1st, setShow1st] = useState(true)
+  const [user, setUser] = useState(firebase.auth().currentUser)
+  console.log("app.jsx console: ", user)
   useEffect(() => {
     try {
       AsyncStorage.getItem('FirstLogin').then((res) => {
@@ -48,8 +51,8 @@ const App = () => {
         tabBarIcon: ({ color, size }) => (
           <MaterialIcons name="contacts" color={color} size={size} />
         ),
-
       }} />
+
     </Tab.Navigator>)
   }
 
@@ -60,7 +63,8 @@ const App = () => {
       <NavigationContainer >
         <Stack.Navigator screenOptions={{
           headerShown: false
-        }}>
+        }}
+          initialRouteName={show1st ? 'First' : user == null ? 'Second' : 'Final'}>
           {show1st ? <Stack.Screen name='First' component={FirstView} /> : null}
           <Stack.Screen name='Second' component={SecondScreen} />
           <Stack.Screen name='Final' component={Final} />

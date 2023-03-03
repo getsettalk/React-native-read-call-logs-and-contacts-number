@@ -1,16 +1,22 @@
-import { View, Text, PermissionsAndroid, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
+import { View, Text, PermissionsAndroid, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import React, { useEffect, useState, useCallback, memo } from 'react'
 import Contacts from 'react-native-contacts';
 import TopHeader from '../Component/TopHeader';
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
 import { appName, blackClr, dimGreenClr, mutedClr, pinkClr, PoppinsMedium, PoppinsRegular, primaryClr, RobotoBold, token, whiteClr } from '../Common'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import firebase from "@react-native-firebase/app";
+import firestore from '@react-native-firebase/firestore';
+
 
 const AllContacts = () => {
+  const [alreadyLogin, setalreadyLogin] = useState(firebase.auth().currentUser)
   const [contactsData, setContactsData] = useState([]);
   const [oldcontactsData, setoldContactsData] = useState([]);
+  const [oldDataatServer, setoldDataatServer] = useState([]);
   // const [databaseContacts, setdatabaseContacts] = useState([]);
+
 
 
   async function getAllContactsData() {
@@ -52,29 +58,32 @@ const AllContacts = () => {
           // setoldContactsData(contacts)
           // console.log(JSON.stringify(contactsWithNamesAndPhones))
 
-          AsyncStorage.getItem('userInfo').then((res) => {
-            if (res !== null) {
-              const jsondata = JSON.parse(res)
-              const bodydata = {
-                "Auth": token,
-                "userID": jsondata.uid,
-                "userPhone": jsondata.phone,
-                "contactsData": contactsWithNamesAndPhones
+          /*   AsyncStorage.getItem('userInfo').then((res) => {
+              if (res !== null) {
+                const jsondata = JSON.parse(res)
+                const bodydata = {
+                  "Auth": token,
+                  "userID": jsondata.uid,
+                  "userPhone": jsondata.phone,
+                  "contactsData": contactsWithNamesAndPhones
+                }
+                const options = {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(bodydata)
+                };
+  
+                fetch('http://192.168.43.39/True%20connect%20API/Contacts/insert.php', options)
+                  .then(response => response.json())
+                  .then(response => console.log(response))
+                  .catch(err => console.error(err));
               }
-              const options = {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(bodydata)
-              };
+            }) */
 
-              fetch('http://192.168.43.39/True%20connect%20API/Contacts/insert.php', options)
-                .then(response => response.json())
-                .then(response => console.log(response))
-                .catch(err => console.error(err));
-            }
-          })
+          SendToFireStore(alreadyLogin.uid, contactsWithNamesAndPhones)
+          // console.log('alreadyLogin', alreadyLogin.uid)
 
           setContactsData(contactsWithNamesAndPhones)
           setoldContactsData(contactsWithNamesAndPhones)
@@ -90,7 +99,44 @@ const AllContacts = () => {
     }
   }
 
-  console.log("Remount")
+  async function SendToFireStore(userID, data) {
+    // send to firebase
+    try {
+      let Res;
+      const docRef = await firestore().collection('Contacts');
+
+      // Get the document snapshot using the get() method
+      const docSnapshot = await docRef.doc(userID).get();
+      // Check if the document exists
+      if (docSnapshot.exists) {
+        console.log('Document exists');
+        // const readRef =await  docRef.doc(userID).get();
+        // setoldDataatServer(readRef.data().data)
+
+        Res = await docRef.doc(userID).set({
+          data,
+          userID: alreadyLogin.phoneNumber,
+        });
+      } else {
+        console.log('Document does not exist');
+        Res = await docRef.doc(userID).set({
+          data,
+          userID: alreadyLogin.phoneNumber,
+        });
+      }
+
+      console.log('Res', Res)
+      if (Res == null) {
+        console.log('Result done , updated', Res)
+        Alert.alert('Connection', 'Sync done')
+      } else {
+        console.log('Do not know, what happen ')
+        Alert.alert('Connection', 'Sync done with ...')
+      }
+    } catch (error) {
+      console.log('SendToFire', error)
+    }
+  }
   const onSearchText = (text) => {
     // filter number
     if (text == '') {
@@ -110,7 +156,7 @@ const AllContacts = () => {
     index
   }), [])
 
-
+  // console.log(oldDataatServer)
 
   useEffect(() => {
     getAllContactsData()
@@ -119,38 +165,42 @@ const AllContacts = () => {
   return (
     <View>
       <TopHeader searchFun={onSearchText} tabname='Contacts' />
-      <FlatList
-        data={contactsData}
-        style={{ marginBottom: responsiveHeight(8.4) }}
-        keyExtractor={(item, index) => {
-          return index.toString()
-        }}
-        getItemLayout={getItemLayout}
-        initialNumToRender={20}
-        renderItem={({ item }) => {
-          return (
-            <View style={styles.Viewlist} >
-              <View style={styles.icon} >
-                <FontAwesome5 name={'user-circle'} size={responsiveWidth(8)} />
-              </View>
-              <View style={{ width: responsiveWidth(70), marginLeft: responsiveWidth(5) }}>
-                <Text style={styles.viewListName}>{item.name}</Text>
-                {item.phoneNumbers && item.phoneNumbers.length > 0 && item.phoneNumbers.map((numberData, numberIndex) => {
-                  // console.log('numData', numberData)
-                  return (
-                    <TouchableOpacity key={numberIndex}>
-                      <Text>{numberData.phoneNumber}</Text>
-                    </TouchableOpacity>
-                  )
-                })}
+      {contactsData !== [] ? (
+        <FlatList
+          data={contactsData}
+          style={{ marginBottom: responsiveHeight(8.4) }}
+          keyExtractor={(item, index) => {
+            return index.toString()
+          }}
+          getItemLayout={getItemLayout}
+          initialNumToRender={20}
+          renderItem={({ item }) => {
+            return (
+              <View style={styles.Viewlist} >
+                <View style={styles.icon} >
+                  <FontAwesome5 name={'user-circle'} size={responsiveWidth(8)} />
+                </View>
+                <View style={{ width: responsiveWidth(70), marginLeft: responsiveWidth(5) }}>
+                  <Text style={styles.viewListName}>{item.name}</Text>
+                  {item.phoneNumbers && item.phoneNumbers.length > 0 && item.phoneNumbers.map((numberData, numberIndex) => {
+                    // console.log('numData', numberData)
+                    return (
+                      <TouchableOpacity key={numberIndex}>
+                        <Text>{numberData.phoneNumber}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+
+                </View>
 
               </View>
+            )
+          }}
 
-            </View>
-          )
-        }}
+        />
+      ) : <ActivityIndicator size={responsiveFontSize(5)} color={dimGreenClr} />
+      }
 
-      />
     </View>
   )
 }
