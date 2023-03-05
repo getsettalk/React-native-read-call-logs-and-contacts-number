@@ -1,4 +1,4 @@
-import { SafeAreaView, View, Text } from 'react-native'
+import { View, Text } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import SplashScreen from 'react-native-splash-screen'
 import FirstView from './src/screen/FirstView'
@@ -13,12 +13,18 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firebase from "@react-native-firebase/app";
-
+import crashlytics from '@react-native-firebase/crashlytics'
 const App = () => {
   const [show1st, setShow1st] = useState(true)
-  const [user, setUser] = useState(firebase.auth().currentUser)
-  console.log("app.jsx console: ", user)
+  const [user, setUser] = useState()
+  // console.log("app.jsx console: ", user)
   useEffect(() => {
+    setUser(firebase.auth().currentUser)
+
+  }, [firebase])
+
+  useEffect(() => {
+
     try {
       AsyncStorage.getItem('FirstLogin').then((res) => {
         if (res == 'done') {
@@ -28,6 +34,7 @@ const App = () => {
       })
     } catch (error) {
       console.log(error)
+      crashlytics().recordError(error);
     }
     SplashScreen.hide();
   }, [])
@@ -40,26 +47,27 @@ const App = () => {
     return (<Tab.Navigator screenOptions={{
       headerShown: false
     }}>
-      <Tab.Screen name='CallLogs' component={Calllogs} options={{
-        tabBarLabel: 'Call Logs',
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="md-call" color={color} size={size} />
-        ),
-      }} />
+
       <Tab.Screen name='AllContacts' component={AllContacts} options={{
         tabBarLabel: 'Contacts',
         tabBarIcon: ({ color, size }) => (
           <MaterialIcons name="contacts" color={color} size={size} />
         ),
       }} />
+      <Tab.Screen name='CallLogs' component={Calllogs} options={{
+        tabBarLabel: 'Call Logs',
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="md-call" color={color} size={size} />
+        ),
+      }} />
 
     </Tab.Navigator>)
   }
 
-
+  // Raj@847307
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <NavigationContainer >
         <Stack.Navigator screenOptions={{
           headerShown: false
@@ -70,7 +78,7 @@ const App = () => {
           <Stack.Screen name='Final' component={Final} />
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaView>
+    </View>
   )
 }
 

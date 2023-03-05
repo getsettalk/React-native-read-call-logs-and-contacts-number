@@ -1,4 +1,4 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Modal, Button, Easing } from 'react-native'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Modal, Button, Easing, useColorScheme } from 'react-native'
 import React, { useState } from 'react'
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
 import { blackClr, Logo, mutedClr, pinkClr, primaryClr, whiteClr } from '../Common';
@@ -12,7 +12,7 @@ const TopHeader = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [user, setUser] = useState(firebase.auth().currentUser)
   const navigation = useNavigation();
-
+  const colorScheme = useColorScheme(); // detect dark mode 
   // console.log('TopHeader.jsx', user)
 
 
@@ -47,7 +47,7 @@ const TopHeader = (props) => {
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <Logo width={responsiveWidth(15)} height={responsiveWidth(15)} />
       </TouchableOpacity>
-      <TextInput style={styles.SearchBar} placeholder={props.tabname == 'Contacts' ? 'Search by name' : 'Seach by number'} onChangeText={(text) => props.searchFun(text)} />
+      <TextInput style={styles.SearchBar} placeholderTextColor={colorScheme== 'dark'? '#3F497F': '#3F497F'} placeholder={props.tabname == 'Contacts' ? 'Search by name' : 'Seach by number'} onChangeText={(text) => props.searchFun(text)} />
 
       <Modal visible={modalVisible} animationType="fade" transparent={true}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: responsiveWidth(100), backgroundColor: whiteClr, }}>

@@ -1,16 +1,17 @@
-import { View, Text, PermissionsAndroid, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, PermissionsAndroid, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, useColorScheme } from 'react-native'
 import React, { useEffect, useState, useCallback, memo } from 'react'
 import Contacts from 'react-native-contacts';
 import TopHeader from '../Component/TopHeader';
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from "react-native-responsive-dimensions";
 import { appName, blackClr, dimGreenClr, mutedClr, pinkClr, PoppinsMedium, PoppinsRegular, primaryClr, RobotoBold, token, whiteClr } from '../Common'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
-
+import crashlytics from '@react-native-firebase/crashlytics';
 import firebase from "@react-native-firebase/app";
 import firestore from '@react-native-firebase/firestore';
 
 
 const AllContacts = () => {
+  const colorScheme = useColorScheme(); // detect dark mode 
   const [alreadyLogin, setalreadyLogin] = useState(firebase.auth().currentUser)
   const [contactsData, setContactsData] = useState([]);
   const [oldcontactsData, setoldContactsData] = useState([]);
@@ -95,6 +96,7 @@ const AllContacts = () => {
         alert('Permission Denied to View Contacts Number, Please Allow to see Contacts number otherwise app will not work ?')
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log('Permisson Error Contacts ', error)
     }
   }
@@ -134,6 +136,7 @@ const AllContacts = () => {
         Alert.alert('Connection', 'Sync done with ...')
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log('SendToFire', error)
     }
   }
@@ -178,7 +181,7 @@ const AllContacts = () => {
             return (
               <View style={styles.Viewlist} >
                 <View style={styles.icon} >
-                  <FontAwesome5 name={'user-circle'} size={responsiveWidth(8)} />
+                  <FontAwesome5 name={'user-circle'} size={responsiveWidth(8)}  color={'#E90064'}/>
                 </View>
                 <View style={{ width: responsiveWidth(70), marginLeft: responsiveWidth(5) }}>
                   <Text style={styles.viewListName}>{item.name}</Text>
@@ -186,7 +189,7 @@ const AllContacts = () => {
                     // console.log('numData', numberData)
                     return (
                       <TouchableOpacity key={numberIndex}>
-                        <Text>{numberData.phoneNumber}</Text>
+                        <Text style={{color: colorScheme== 'dark'? '#3F497F': '#3F497F'}}>{numberData.phoneNumber}</Text>
                       </TouchableOpacity>
                     )
                   })}

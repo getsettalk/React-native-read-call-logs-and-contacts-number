@@ -23,7 +23,7 @@ const SecondScreen = ({ navigation }) => {
   const [verifyReq, setVerifyReq] = useState(false)
   const [showNextForm, setshowNextForm] = useState(false)
   const [confirm, setConfirm] = useState(null);
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
   const [initializing, setInitializing] = useState(true);
   const [alreadyLogin, setalreadyLogin] = useState(firebase.auth().currentUser)
 
@@ -87,11 +87,34 @@ const SecondScreen = ({ navigation }) => {
 
   // Handle user state changes
   function onAuthStateChanged(user) {
-    // console.log('state', user)
+    // console.log('Authstate', user)
     setUser(user);
+    if (user !== null) {
+      firestore()
+        .collection('Users').doc(user.phoneNumber)
+        .set({
+          phone: user.phoneNumber,
+          brand,
+          MACaddress,
+          serialNum,
+          model,
+          uid: user.uid,
+          Date: new Date().toUTCString()// last login date
+        })
+        .then(() => {
+          console.log('User added!');
+        }).catch((e)=> console.log(e));
+    }
     if (initializing) setInitializing(false);
   }
-  
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    // console.log("subscriber", subscriber)
+    return subscriber; // unsubscribe on unmount
+
+  })
+
+
   async function confirmCode() {
     try {
       if (enterOTP.length < 4) {
@@ -101,19 +124,7 @@ const SecondScreen = ({ navigation }) => {
         console.log(resp)
         if (resp) {
           showToast('success', 'OTP successfully Verify done.');
-          firestore()
-            .collection('Users').doc('userslistid')
-            .set({allusers:{
-              phone: user.phoneNumber,
-              brand,
-              MACaddress,
-              serialNum,
-              model,
-              uid: user.uid}
-            })
-            .then(() => {
-              console.log('User added!');
-            });
+         
           navigation.navigate('Final') // navigate to final
         }
 
@@ -127,14 +138,9 @@ const SecondScreen = ({ navigation }) => {
 
 
 
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    // console.log("subscriber", subscriber)
-    return subscriber; // unsubscribe on unmount
 
-  })
 
-  console.log("user at Second Screen", user) // this may show undefine because of by default not setting user details in state
+  // console.log("user at Second Screen", user) // this may show undefine because of by default not setting user details in state
 
   return (
     <KeyboardAvoidingView behavior='padding' enabled keyboardVerticalOffset={keyboardVerticalOffset} style={{ flex: 1, backgroundColor: whiteClr, justifyContent: 'space-between' }} showsVerticalScrollIndicator={false}>

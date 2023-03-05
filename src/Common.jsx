@@ -37,6 +37,8 @@ DeviceInfo.getSerialNumber().then((serialNumber) => {
     serialNum = serialNumber
 });
 let model = DeviceInfo.getModel();
+
+
 export {
     appName,
     dimGreenClr,
