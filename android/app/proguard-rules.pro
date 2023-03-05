@@ -9,6 +9,9 @@
 
 # Add any project specific keep options here:
 
+-keepclassmembers class com.android.installreferrer.api.** {
+  *;
+}
 
 -keep class com.rt2zz.reactnativecontacts.** {*;}
 -keepclassmembers class com.rt2zz.reactnativecontacts.** {*;}
